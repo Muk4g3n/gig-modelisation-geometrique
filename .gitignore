@@ -5,3 +5,5 @@ out
 gen
 
 cmake-build-debug
+
+datasets
