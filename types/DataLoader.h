@@ -11,6 +11,7 @@
 
 #include <CGAL/IO/read_points.h>
 #include "CICP_Types.h"
+#include "VoxelGrid.h"
 
 namespace fs = std::filesystem;
 
@@ -41,6 +42,54 @@ public:
         else {
             std::cerr << "Error: Unsupported file extension '" << ext << "'" << std::endl;
             return false;
+        }
+    }
+
+
+    void export_voxel_centers(const std::string& filepath, const VoxelGrid& grid) {
+        std::ofstream out(filepath);
+        if (!out) return;
+
+        // PLY Header
+        out << "ply\n";
+        out << "format ascii 1.0\n";
+        out << "element vertex " << grid.grid.size() << "\n";
+        out << "property float x\n";
+        out << "property float y\n";
+        out << "property float z\n";
+        out << "end_header\n";
+
+        for (const auto& [key, indices] : grid.grid) {
+
+            double cx = grid.min_x + (key.i + 0.5) * grid.voxel_size;
+            double cy = grid.min_y + (key.j + 0.5) * grid.voxel_size;
+            double cz = grid.min_z + (key.k + 0.5) * grid.voxel_size;
+
+            out << cx << " " << cy << " " << cz << "\n";
+        }
+        std::cout << "Saved voxel debug cloud to " << filepath << std::endl;
+    }
+
+    void export_cloud_with_normals(const std::string& filepath, const std::vector<PointVectorPair>& cloud) {
+        std::ofstream out(filepath);
+        if (!out) return;
+
+        out << "ply\n";
+        out << "format ascii 1.0\n";
+        out << "element vertex " << cloud.size() << "\n";
+        out << "property float x\n";
+        out << "property float y\n";
+        out << "property float z\n";
+        out << "property float nx\n";
+        out << "property float ny\n";
+        out << "property float nz\n";
+        out << "end_header\n";
+
+        for (const auto& pair : cloud) {
+            const Point& p = pair.first;
+            const Vector& n = pair.second;
+            out << p.x() << " " << p.y() << " " << p.z() << " "
+                << n.x() << " " << n.y() << " " << n.z() << "\n";
         }
     }
 
